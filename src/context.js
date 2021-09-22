@@ -13,18 +13,57 @@ const initialState = {
   amount: 0,
 }
 
+const ACTIONS = {
+  CLEAR_CART: "CLEAR_CART",
+  REMOVE_ITEM: "REMOVE_ITEM",
+  INCREASE: "INCREASE",
+  DECREASE: "DECREASE",
+  GET_TOTAL: "GET_TOTAL",
+  LOADING: "LOADING",
+  DISPLAY_ITEMS: "DISPLAY_ITEMS",
+  TOGGLE_AMOUNT: "TOGGLE_AMOUNT",
+}
+
 const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState)
 
-  const clearCart = () => {
-    dispatch({ type: "CLEAR_CART" })
+  const fetchData = async () => {
+    dispatch({ type: ACTIONS.LOADING })
+    const response = await fetch(url)
+    const cart = await response.json()
+    dispatch({ type: ACTIONS.DISPLAY_ITEMS, payload: cart })
   }
 
-  const increaseAmount = (id) => {}
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  useEffect(() => {
+    dispatch({ type: ACTIONS.GET_TOTAL })
+  }, [state.cart])
+
+  const clearCart = () => {
+    dispatch({ type: ACTIONS.CLEAR_CART })
+  }
+
+  const increaseAmount = (id) => {
+    dispatch({ type: ACTIONS.INCREASE, payload: id })
+  }
+
+  const decreaseAmount = (id) => {
+    dispatch({ type: ACTIONS.DECREASE, payload: id })
+  }
 
   const removeItem = (id) => {
     const filteredItems = state.cart.filter((item) => item.id !== id)
-    dispatch({ type: "REMOVE_ITEM", payload: filteredItems })
+    dispatch({ type: ACTIONS.REMOVE_ITEM, payload: filteredItems })
+  }
+
+  const toggleAmount = (id, toggleType) => {
+    dispatch({
+      type: ACTIONS.TOGGLE_AMOUNT,
+      payload: { id, toggleType },
+    })
   }
 
   return (
@@ -33,7 +72,9 @@ const AppProvider = ({ children }) => {
         ...state,
         clearCart,
         removeItem,
-        increaseAmount
+        increaseAmount,
+        decreaseAmount,
+        toggleAmount,
       }}
     >
       {children}
